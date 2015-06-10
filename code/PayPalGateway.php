@@ -100,8 +100,18 @@ class PayPalGateway_Express extends PayPalGateway {
 			'SOLUTIONTYPE' => 'Sole', //require paypal account, or not. Can be or 'Mark' (required) or 'Sole' (not required)
 		);
 
+		// A Hack to prepopulate the shipping address fields in paypal
+		if(isset($data['Shipping'])) {
+			foreach($data['Shipping'] as $key => $val) {
+				$payload[$key] = $val;
+			}
+			$payload['NOSHIPPING'] = 0;
+			$payload['ADDROVERRIDE'] = 1;
+		}
+		
 		$response = $this->callAPI($payload);
 		$body = $this->formatResponse($response->getBody());
+		
 
 		if(!isset($body['ACK']) || !(strtoupper($body['ACK']) == "SUCCESS" || strtoupper($body['ACK']) == "SUCCESSWITHWARNING")){
 			return new PaymentGateway_Failure($response, 'You are attempting to make a payment without the necessary credentials set');
